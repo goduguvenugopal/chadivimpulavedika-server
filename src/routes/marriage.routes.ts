@@ -1,18 +1,21 @@
 import express from "express";
 import {
   createMarriage,
-  getAllMarriages,
-  getMarriageById,
-  updateMarriage,
-  deleteMarriage,
+  loginMarriage,
+  getMyMarriage,
+  updateMyMarriage,
+  deleteMyMarriage,
 } from "../controllers/marriage.controller";
+
+import { protect } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 
-router.post("/", createMarriage);
-router.get("/", getAllMarriages);
-router.get("/:id", getMarriageById);
-router.put("/:id", updateMarriage);
-router.delete("/:id", deleteMarriage);
+router.post("/register", createMarriage);
+router.post("/login", loginMarriage);
+
+router.get("/me", protect, getMyMarriage);
+router.put("/me", protect, updateMyMarriage);
+router.delete("/me", protect, deleteMyMarriage);
 
 export default router;

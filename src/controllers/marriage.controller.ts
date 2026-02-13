@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import Marriage from "../models/Marriage";
-import { asyncHandler } from "../utills/asyncHandler"
+import { asyncHandler } from "../utills/asyncHandler";
+import { generateToken } from "../utills/generateToken";
+import { AuthRequest } from "../types/express";
 
 interface CustomError extends Error {
   statusCode?: number;
@@ -48,7 +50,35 @@ export const createMarriage = asyncHandler(
       success: true,
       data: marriage,
     });
-  }
+  },
+);
+
+export const loginMarriage = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { adminMobileNumber } = req.body;
+
+    if (!adminMobileNumber) {
+      const error: any = new Error("Mobile number is required");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const marriage = await Marriage.findOne({ adminMobileNumber });
+
+    if (!marriage) {
+      const error: any = new Error("Marriage not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const token = generateToken(marriage._id.toString());
+
+    res.status(200).json({
+      success: true,
+      token,
+      data: marriage,
+    });
+  },
 );
 
 /**
@@ -63,15 +93,21 @@ export const getAllMarriages = asyncHandler(
       count: marriages.length,
       data: marriages,
     });
-  }
+  },
 );
 
 /**
  * @desc Get Single Marriage
  */
-export const getMarriageById = asyncHandler(
-  async (req: Request, res: Response) => {
-    const marriage = await Marriage.findById(req.params.id);
+export const getMyMarriage = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    if (!req.marriageId) {
+      const error = new Error("Not authorized") as CustomError;
+      error.statusCode = 401;
+      throw error;
+    }
+
+    const marriage = await Marriage.findById(req.marriageId);
 
     if (!marriage) {
       const error = new Error("Marriage not found") as CustomError;
@@ -83,18 +119,24 @@ export const getMarriageById = asyncHandler(
       success: true,
       data: marriage,
     });
-  }
+  },
 );
 
 /**
  * @desc Update Marriage
  */
-export const updateMarriage = asyncHandler(
-  async (req: Request, res: Response) => {
+export const updateMyMarriage = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    if (!req.marriageId) {
+      const error = new Error("Not authorized") as CustomError;
+      error.statusCode = 401;
+      throw error;
+    }
+
     const marriage = await Marriage.findByIdAndUpdate(
-      req.params.id,
+      req.marriageId,
       req.body,
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!marriage) {
@@ -107,15 +149,20 @@ export const updateMarriage = asyncHandler(
       success: true,
       data: marriage,
     });
-  }
+  },
 );
 
 /**
  * @desc Delete Marriage
- */
-export const deleteMarriage = asyncHandler(
-  async (req: Request, res: Response) => {
-    const marriage = await Marriage.findByIdAndDelete(req.params.id);
+ */ export const deleteMyMarriage = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    if (!req.marriageId) {
+      const error = new Error("Not authorized") as CustomError;
+      error.statusCode = 401;
+      throw error;
+    }
+
+    const marriage = await Marriage.findByIdAndDelete(req.marriageId);
 
     if (!marriage) {
       const error = new Error("Marriage not found") as CustomError;
@@ -127,5 +174,5 @@ export const deleteMarriage = asyncHandler(
       success: true,
       message: "Marriage deleted successfully",
     });
-  }
+  },
 );
