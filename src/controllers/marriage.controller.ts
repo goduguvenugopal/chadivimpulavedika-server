@@ -1,14 +1,10 @@
 import { Request, Response } from "express";
-import Marriage from "../models/Marriage";
+import Marriage from "../models/marriage.model";
 import { asyncHandler } from "../utills/asyncHandler";
 import { generateToken } from "../utills/generateToken";
 import { AuthRequest } from "../types/express";
 import { requireRole } from "../utills/roleCheck";
-
-interface CustomError extends Error {
-  statusCode?: number;
-}
-
+import { CustomError } from "../types/CustomError";
 /**
  * @desc Create Marriage
  */
@@ -150,7 +146,7 @@ export const updateMyMarriage = asyncHandler(
       throw error;
     }
 
-    requireRole(req, "admin");
+    requireRole(req, "user");
 
     // ✅ Only allow these fields
     const allowedFields = [
@@ -173,7 +169,7 @@ export const updateMyMarriage = asyncHandler(
     const marriage = await Marriage.findByIdAndUpdate(
       req.marriageId,
       updateData,
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!marriage) {
@@ -186,9 +182,58 @@ export const updateMyMarriage = asyncHandler(
       success: true,
       data: marriage,
     });
-  }
+  },
 );
 
+// marriage pemission update
+export const updateMarriageAccess = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    // Only platform super admin can update access control
+    requireRole(req, "admin");
+
+    const { marriageId } = req.params;
+
+    if (!marriageId) {
+      const error = new Error("Marriage ID is required") as CustomError;
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // ✅ Only allow role and permissions updates
+    const allowedFields = ["permissions"];
+
+    const updateData: Record<string, any> = {};
+
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) {
+        updateData[key] = req.body[key];
+      }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      const error = new Error("No valid fields provided") as CustomError;
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const marriage = await Marriage.findByIdAndUpdate(marriageId, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!marriage) {
+      const error = new Error("Marriage not found") as CustomError;
+      error.statusCode = 404;
+      throw error;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Marriage details updated successfully",
+      data: marriage,
+    });
+  },
+);
 
 /**
  * @desc Delete Marriage

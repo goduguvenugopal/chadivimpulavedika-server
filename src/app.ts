@@ -7,8 +7,8 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import hpp from "hpp";
 import marriageRoutes from "./routes/marriage.routes";
+import visitorRoutes from "./routes/visitor.routes"
 import { globalErrorHandler } from "./middlewares/globalErrorHandler";
-
 
 const app = express();
 
@@ -40,7 +40,7 @@ app.use(hpp());
 
 
 app.use("/api/marriages", marriageRoutes);
-
+app.use("/api/marriage/visitors" ,visitorRoutes)
 
 
 // Global Error Middleware (MUST BE LAST)

@@ -2,16 +2,15 @@ import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { AuthRequest } from "../types/express";
 
- 
 interface JwtPayload {
   id: string;
-  role: "admin" | "user";
+  role: "admin" | "user" | "superadmin";
 }
 
 export const protect = (
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   let token: string | undefined;
 
@@ -32,7 +31,7 @@ export const protect = (
   try {
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET as string
+      process.env.JWT_SECRET as string,
     ) as JwtPayload;
 
     req.marriageId = decoded.id;

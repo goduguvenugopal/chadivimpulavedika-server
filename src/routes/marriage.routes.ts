@@ -6,6 +6,7 @@ import {
   updateMyMarriage,
   deleteMyMarriage,
   getAllMarriages,
+  updateMarriageAccess,
 } from "../controllers/marriage.controller";
 
 import { protect } from "../middlewares/authMiddleware";
@@ -19,6 +20,8 @@ router.get("/me", protect, getMyMarriage);
 router.get("/", protect, getAllMarriages);
 
 router.put("/me", protect, updateMyMarriage);
+router.put("/:marriageId/access", protect, updateMarriageAccess);
+
 router.delete("/me", protect, deleteMyMarriage);
 
 export default router;
