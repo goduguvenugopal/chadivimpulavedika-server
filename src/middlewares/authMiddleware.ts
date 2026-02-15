@@ -5,6 +5,7 @@ import { AuthRequest } from "../types/express";
 interface JwtPayload {
   id: string;
   role: "admin" | "user" | "superadmin";
+  permissions: "approved" | "rejected" | "pending";
 }
 
 export const protect = (
@@ -36,6 +37,7 @@ export const protect = (
 
     req.marriageId = decoded.id;
     req.role = decoded.role;
+    req.permissions = decoded.permissions;
 
     next();
   } catch {

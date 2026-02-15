@@ -4,6 +4,7 @@ import { AuthRequest } from "../types/express";
 import { CustomError } from "../types/CustomError";
 import Visitor from "../models/visitor.model";
 import mongoose from "mongoose";
+import Marriage from "../models/marriage.model";
 
 /**
  * @desc Add Visitor
@@ -15,6 +16,24 @@ export const addVisitor = asyncHandler(
     if (!req.marriageId) {
       const error = new Error("Not authorized") as CustomError;
       error.statusCode = 401;
+      throw error;
+    }
+
+    // Fetch marriage
+    const isMarriage = await Marriage.findById(req.marriageId);
+
+    if (!isMarriage) {
+      const error = new Error("Marriage not found") as CustomError;
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Check approval status
+    if (isMarriage.permissions !== "approved") {
+      const error = new Error(
+        "Visitors can only be added after marriage is approved",
+      ) as CustomError;
+      error.statusCode = 403;
       throw error;
     }
 
@@ -181,6 +200,28 @@ export const getDashboardStats = asyncHandler(
     res.status(200).json({
       success: true,
       data: result,
+    });
+  },
+);
+
+// get all visitors
+export const getAllVisitorsForExport = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    if (!req.marriageId) {
+      throw new Error("Not authorized");
+    }
+
+    const visitors = await Visitor.find({
+      marriageId: req.marriageId,
+    }).sort({ createdAt: -1 });
+
+    const totalAmount = visitors.reduce((acc, item) => acc + item.amount, 0);
+
+    res.status(200).json({
+      success: true,
+      totalAmount,
+      totalVisitors: visitors.length,
+      data: visitors,
     });
   },
 );

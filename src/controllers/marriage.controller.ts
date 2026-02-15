@@ -82,7 +82,8 @@ export const loginMarriage = asyncHandler(
       throw error;
     }
 
-    const token = generateToken(marriage._id.toString(), marriage.role);
+    // generate jwt 
+    const token = generateToken(marriage._id.toString(), marriage.role , marriage.permissions);
 
     res.status(200).json({
       success: true,
