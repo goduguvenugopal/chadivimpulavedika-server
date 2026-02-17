@@ -1,47 +1,65 @@
 import dotenv from "dotenv";
 dotenv.config();
+
 import express from "express";
 import cors from "cors";
-import { corsOptions } from "./middlewares/cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import hpp from "hpp";
+import cookieParser from "cookie-parser";
+
+import { corsOptions } from "./middlewares/cors";
 import marriageRoutes from "./routes/marriage.routes";
 import visitorRoutes from "./routes/visitor.routes";
 import { globalErrorHandler } from "./middlewares/globalErrorHandler";
-import cookieParser from "cookie-parser";
 
 const app = express();
 
-app.use(cookieParser());
+/* ========================
+   SECURITY MIDDLEWARES
+======================== */
+
 // Security Headers
 app.use(helmet());
 
-// CORS
+// CORS (must come early)
 app.use(cors(corsOptions));
-// app.use(cors())
 
-// Rate Limiting
+// Rate Limiting (before routes)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: "Too many requests from this IP, please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use("/api", limiter); // Apply to all API routes
+app.use("/api", limiter);
 
-// Body Parser
-app.use(express.json({ limit: "10kb" })); // Limit body size
+/* ========================
+   PARSERS
+======================== */
+
+// Body Parsers
+app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+
+// Cookie Parser (after body parsing is fine)
+app.use(cookieParser());
 
 // Prevent HTTP Parameter Pollution
 app.use(hpp());
 
+/* ========================
+   ROUTES
+======================== */
+
 app.use("/api/marriages", marriageRoutes);
 app.use("/api/marriage/visitors", visitorRoutes);
 
-// Global Error Middleware (MUST BE LAST)
+/* ========================
+   GLOBAL ERROR HANDLER
+======================== */
+
 app.use(globalErrorHandler);
 
 export default app;
