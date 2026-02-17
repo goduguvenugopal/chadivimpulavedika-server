@@ -7,6 +7,7 @@ import {
   deleteMyMarriage,
   getAllMarriages,
   updateMarriageAccess,
+  logoutMarriage,
 } from "../controllers/marriage.controller";
 
 import { protect } from "../middlewares/authMiddleware";
@@ -15,6 +16,7 @@ const router = express.Router();
 
 router.post("/register", createMarriage);
 router.post("/login", loginMarriage);
+router.post("/logout", logoutMarriage);
 
 router.get("/me", protect, getMyMarriage);
 router.get("/", protect, getAllMarriages);

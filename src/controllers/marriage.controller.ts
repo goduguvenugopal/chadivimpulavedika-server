@@ -82,16 +82,50 @@ export const loginMarriage = asyncHandler(
       throw error;
     }
 
-    // generate jwt 
-    const token = generateToken(marriage._id.toString(), marriage.role , marriage.permissions);
+    // 🔐 Generate JWT
+    const token = generateToken(
+      marriage._id.toString(),
+      marriage.role,
+      marriage.permissions
+    );
+
+    // 🔐 Set HTTP-only cookie
+    res.cookie("mg_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
     res.status(200).json({
       success: true,
-      token,
-      data: marriage,
+      message: "Login successful",
+      data: {
+        _id: marriage._id,
+        marriageName: marriage.marriageName,
+        role: marriage.role,
+        permissions: marriage.permissions,
+      },
     });
-  },
+  }
 );
+
+
+// logout marriage
+export const logoutMarriage = (req: AuthRequest, res: Response) => {
+  res.cookie("mg_token", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    expires: new Date(0), 
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
+};
+
 
 /**
  * @desc Get All Marriages
