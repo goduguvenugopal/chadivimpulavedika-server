@@ -35,7 +35,7 @@ const marriageSchema = new Schema<IMarriage>(
     adminMobileNumber: {
       type: String,
       required: true,
-      match: /^[6-9]\d{9}$/, // Indian mobile validation
+      match: /^[1-9]\d{9}$/,
     },
 
     upiId: {

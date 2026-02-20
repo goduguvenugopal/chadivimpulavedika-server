@@ -24,6 +24,7 @@ app.use(helmet());
 
 // CORS (must come early)
 app.use(cors(corsOptions));
+// app.use(cors())
 
 // Rate Limiting (before routes)
 const limiter = rateLimit({
