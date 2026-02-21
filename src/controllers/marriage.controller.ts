@@ -40,7 +40,7 @@ export const createMarriage = asyncHandler(
 
     if (existingMarriage) {
       const error = new Error(
-        "Marriage already registered with this admin mobile number",
+        "Marriage already registered with this mobile number",
       ) as CustomError;
       error.statusCode = 409; // Conflict
       throw error;

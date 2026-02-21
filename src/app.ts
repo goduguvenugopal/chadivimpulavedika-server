@@ -27,6 +27,7 @@ app.use(cors(corsOptions));
 // app.use(cors())
 
 // Rate Limiting (before routes)
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -34,7 +35,7 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use("/api", limiter);
+// app.use("/api", limiter);
 
 /* ========================
    PARSERS

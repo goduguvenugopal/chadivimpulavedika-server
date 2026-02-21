@@ -68,7 +68,8 @@ export const addVisitor = asyncHandler(
  * @desc Get All Visitors (for logged marriage)
  * @route GET /api/visitors
  * @access Private
- */ export const getVisitors = asyncHandler(
+ */
+export const getVisitors = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     if (!req.marriageId) {
       const error = new Error("Not authorized") as CustomError;
@@ -76,21 +77,27 @@ export const addVisitor = asyncHandler(
       throw error;
     }
 
-    // Query Params
+    // Pagination
     const page = Math.max(Number(req.query.page) || 1, 1);
     const limit = Math.min(Number(req.query.limit) || 20, 100);
-    // Max 100 to prevent heavy load
-
     const skip = (page - 1) * limit;
 
-    const filter = {
+    // Search
+    const search = (req.query.search as string)?.trim();
+
+    const filter: any = {
       marriageId: req.marriageId,
     };
 
-    // Total count
+    if (search) {
+      filter.$or = [
+        { visitorName: { $regex: search, $options: "i" } },
+        { address: { $regex: search, $options: "i" } },
+      ];
+    }
+
     const totalVisitors = await Visitor.countDocuments(filter);
 
-    // Fetch paginated visitors
     const visitors = await Visitor.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
