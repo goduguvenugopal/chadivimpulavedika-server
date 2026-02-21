@@ -64,6 +64,76 @@ export const addVisitor = asyncHandler(
   },
 );
 
+
+/**
+ * @desc Update Visitor
+ * @route PUT /api/marriage/visitors/:id
+ * @access Private
+ */
+export const updateVisitor = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    if (!req.marriageId) {
+      const error = new Error("Not authorized") as CustomError;
+      error.statusCode = 401;
+      throw error;
+    }
+
+    const { id } = req.params;
+
+    // Check marriage
+    const isMarriage = await Marriage.findById(req.marriageId);
+
+    if (!isMarriage) {
+      const error = new Error("Marriage not found") as CustomError;
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (isMarriage.permissions !== "approved") {
+      const error = new Error(
+        "Visitors can only be updated after marriage is approved"
+      ) as CustomError;
+      error.statusCode = 403;
+      throw error;
+    }
+
+    const visitor = await Visitor.findOne({
+      _id: id,
+      marriageId: req.marriageId,
+    });
+
+    if (!visitor) {
+      const error = new Error("Visitor not found") as CustomError;
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const { visitorName, amount, paymentMode, address, notes, giftGiven } =
+      req.body;
+
+    if (!visitorName || !amount || !paymentMode || !address) {
+      const error = new Error("Please fill all required fields") as CustomError;
+      error.statusCode = 400;
+      throw error;
+    }
+
+    visitor.visitorName = visitorName;
+    visitor.amount = amount;
+    visitor.paymentMode = paymentMode;
+    visitor.address = address;
+    visitor.notes = notes;
+    visitor.giftGiven = giftGiven;
+
+    await visitor.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Visitor updated successfully",
+      data: visitor,
+    });
+  }
+);
+
 /**
  * @desc Get All Visitors (for logged marriage)
  * @route GET /api/visitors
