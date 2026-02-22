@@ -86,15 +86,14 @@ export const loginMarriage = asyncHandler(
     const token = generateToken(
       marriage._id.toString(),
       marriage.role,
-      marriage.permissions
+      marriage.permissions,
     );
 
-    // 🔐 Set HTTP-only cookie
     res.cookie("mg_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({
@@ -107,9 +106,8 @@ export const loginMarriage = asyncHandler(
         permissions: marriage.permissions,
       },
     });
-  }
+  },
 );
-
 
 // logout marriage
 export const logoutMarriage = (req: AuthRequest, res: Response) => {
@@ -117,7 +115,7 @@ export const logoutMarriage = (req: AuthRequest, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    expires: new Date(0), 
+    expires: new Date(0),
   });
 
   res.status(200).json({
@@ -125,7 +123,6 @@ export const logoutMarriage = (req: AuthRequest, res: Response) => {
     message: "Logged out successfully",
   });
 };
-
 
 /**
  * @desc Get All Marriages
