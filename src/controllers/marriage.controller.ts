@@ -92,7 +92,7 @@ export const loginMarriage = asyncHandler(
     res.cookie("mg_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -114,7 +114,7 @@ export const logoutMarriage = (req: AuthRequest, res: Response) => {
   res.cookie("mg_token", "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "none",
     expires: new Date(0),
   });
 
