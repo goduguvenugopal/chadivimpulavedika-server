@@ -15,6 +15,8 @@ import { globalErrorHandler } from "./middlewares/globalErrorHandler";
 
 const app = express();
 
+
+
 /* ========================
    SECURITY MIDDLEWARES
 ======================== */
