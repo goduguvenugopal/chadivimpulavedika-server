@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
-import Marriage from "../models/marriage.model";
+import Marriage, { IMarriage, marriageSchema } from "../models/marriage.model";
 import { asyncHandler } from "../utills/asyncHandler";
 import { generateToken } from "../utills/generateToken";
 import { AuthRequest } from "../types/express";
 import { requireRole } from "../utills/roleCheck";
 import { CustomError } from "../types/CustomError";
+import bcrypt from "bcrypt";
 /**
  * @desc Create Marriage
  */
@@ -15,6 +16,7 @@ export const createMarriage = asyncHandler(
       marriageDate,
       location,
       adminMobileNumber,
+      password,
       upiId,
       upiPayeeName,
       role,
@@ -26,7 +28,8 @@ export const createMarriage = asyncHandler(
       !location ||
       !adminMobileNumber ||
       !upiId ||
-      !upiPayeeName
+      !upiPayeeName ||
+      !password
     ) {
       const error = new Error("All fields are required") as CustomError;
       error.statusCode = 400;
@@ -46,11 +49,14 @@ export const createMarriage = asyncHandler(
       throw error;
     }
 
+    const hashedPassword: string = await bcrypt.hash(password, 10);
+
     const marriage = await Marriage.create({
       marriageName,
       marriageDate,
       location,
       adminMobileNumber,
+      password: hashedPassword,
       upiId,
       upiPayeeName,
       role,
@@ -66,7 +72,7 @@ export const createMarriage = asyncHandler(
 // login Marriage
 export const loginMarriage = asyncHandler(
   async (req: Request, res: Response) => {
-    const { adminMobileNumber } = req.body;
+    const { adminMobileNumber, password } = req.body;
 
     if (!adminMobileNumber) {
       const error: any = new Error("Mobile number is required");
@@ -79,6 +85,15 @@ export const loginMarriage = asyncHandler(
     if (!marriage) {
       const error: any = new Error("Marriage not found");
       error.statusCode = 404;
+      throw error;
+    }
+
+    // comparing hash password
+    const isMatch = await bcrypt.compare(password, marriage.password);
+
+    if (!isMatch) {
+      const error: any = new Error("Invalid Password");
+      error.statusCode = 400;
       throw error;
     }
 
@@ -99,12 +114,6 @@ export const loginMarriage = asyncHandler(
     res.status(200).json({
       success: true,
       message: "Login successful",
-      data: {
-        _id: marriage._id,
-        marriageName: marriage.marriageName,
-        role: marriage.role,
-        permissions: marriage.permissions,
-      },
     });
   },
 );
@@ -152,7 +161,9 @@ export const getMyMarriage = asyncHandler(
       throw error;
     }
 
-    const marriage = await Marriage.findById(req.marriageId).select("-_id");
+    const marriage = await Marriage.findById(req.marriageId).select(
+      "-_id -password",
+    );
 
     if (!marriage) {
       const error = new Error("Marriage not found") as CustomError;
@@ -212,15 +223,15 @@ export const updateMyMarriage = asyncHandler(
 
     res.status(200).json({
       success: true,
-      data: marriage,
+      message: "Marriage updated successfully",
     });
   },
 );
 
-// marriage pemission update
+// marriage update
 export const updateMarriageAccess = asyncHandler(
   async (req: AuthRequest, res: Response) => {
-    // Only platform super admin can update access control
+    // Only platform  admin can update access control
     requireRole(req, "admin");
 
     const { marriageId } = req.params;
@@ -232,7 +243,7 @@ export const updateMarriageAccess = asyncHandler(
     }
 
     // ✅ Only allow role and permissions updates
-    const allowedFields = ["permissions"];
+    const allowedFields = ["permissions , password "];
 
     const updateData: Record<string, any> = {};
 
@@ -246,6 +257,11 @@ export const updateMarriageAccess = asyncHandler(
       const error = new Error("No valid fields provided") as CustomError;
       error.statusCode = 400;
       throw error;
+    }
+
+    // 🔐 If password is being updated → hash it
+    if (updateData.password) {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
     }
 
     const marriage = await Marriage.findByIdAndUpdate(marriageId, updateData, {
