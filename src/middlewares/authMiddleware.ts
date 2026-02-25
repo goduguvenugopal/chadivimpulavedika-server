@@ -11,11 +11,9 @@ interface JwtPayload {
 export const protect = (
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const token = req.cookies?.mg_token;
-
-
 
   if (!token) {
     return res.status(401).json({
@@ -27,7 +25,7 @@ export const protect = (
   try {
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET as string
+      process.env.JWT_SECRET as string,
     ) as JwtPayload;
 
     req.marriageId = decoded.id;

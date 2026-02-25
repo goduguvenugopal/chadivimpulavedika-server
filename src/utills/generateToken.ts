@@ -3,7 +3,7 @@ import * as jwt from "jsonwebtoken";
 export const generateToken = (
   id: string,
   role: "admin" | "user" | "superadmin",
-  permissions: "approved" | "rejected" | "pending",
+  permissions: "approved" | "rejected" | "pending" | "expired",
 ) => {
   const secret = process.env.JWT_SECRET;
   const expiresIn = process.env.JWT_EXPIRES_IN || "7d";

@@ -9,7 +9,7 @@ export interface IMarriage extends Document {
   upiId: string;
   upiPayeeName: string;
   role: "user" | "admin";
-  permissions: "approved" | "rejected" | "pending";
+  permissions: "approved" | "rejected" | "pending" | "expired";
   subscriptionExpiresAt?: Date;
   status: "active" | "inactive";
   createdAt: Date;
@@ -77,7 +77,7 @@ export const marriageSchema = new Schema<IMarriage>(
     },
     permissions: {
       type: String,
-      enum: ["approved", "rejected", "pending"],
+      enum: ["approved", "rejected", "pending", "expired"],
       default: "pending",
     },
   },

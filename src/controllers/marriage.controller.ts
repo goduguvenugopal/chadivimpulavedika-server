@@ -259,7 +259,11 @@ export const updateMarriageAccess = asyncHandler(
     }
 
     // ✅ Only allow role and permissions updates
-    const allowedFields = ["permissions , password" , "status" , "subscriptionExpiresAt" ];
+    const allowedFields = [
+      "permissions , password",
+      "status",
+      "subscriptionExpiresAt",
+    ];
 
     const updateData: Record<string, any> = {};
 
