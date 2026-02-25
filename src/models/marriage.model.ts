@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document } from "mongoose";
- 
 
 export interface IMarriage extends Document {
   marriageName: string;
@@ -11,6 +10,8 @@ export interface IMarriage extends Document {
   upiPayeeName: string;
   role: "user" | "admin";
   permissions: "approved" | "rejected" | "pending";
+  subscriptionExpiresAt?: Date;
+  status: "active" | "inactive";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -59,6 +60,16 @@ export const marriageSchema = new Schema<IMarriage>(
       trim: true,
     },
 
+    subscriptionExpiresAt: {
+      type: Date,
+      default: null,
+    },
+
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "inactive",
+    },
     role: {
       type: String,
       enum: ["admin", "user", "superadmin"],
@@ -75,6 +86,4 @@ export const marriageSchema = new Schema<IMarriage>(
   },
 );
 
-
- 
 export default mongoose.model<IMarriage>("Marriage", marriageSchema);

@@ -108,8 +108,24 @@ export const loginMarriage = asyncHandler(
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 3 * 24 * 60 * 60 * 1000,
     });
+
+    // loginMarriage controller
+
+    const expiryDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+
+    const updateData: any = {
+      subscriptionExpiresAt: expiryDate,
+    };
+
+    // If first time (inactive → active)
+    if (marriage.status === "inactive") {
+      updateData.status = "active";
+    }
+
+    // If already active, we still refresh expiry
+    await Marriage.findByIdAndUpdate(marriage._id, updateData);
 
     res.status(200).json({
       success: true,
@@ -243,7 +259,7 @@ export const updateMarriageAccess = asyncHandler(
     }
 
     // ✅ Only allow role and permissions updates
-    const allowedFields = ["permissions , password "];
+    const allowedFields = ["permissions , password" , "status" , "subscriptionExpiresAt" ];
 
     const updateData: Record<string, any> = {};
 

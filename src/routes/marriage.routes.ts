@@ -11,6 +11,7 @@ import {
 } from "../controllers/marriage.controller";
 
 import { protect } from "../middlewares/authMiddleware";
+import { checkSubscription } from "../middlewares/checkSubscription";
 
 const router = express.Router();
 
@@ -18,12 +19,12 @@ router.post("/register", createMarriage);
 router.post("/login", loginMarriage);
 router.post("/logout", logoutMarriage);
 
-router.get("/me", protect, getMyMarriage);
+router.get("/me", protect,checkSubscription, getMyMarriage);
 router.get("/", protect, getAllMarriages);
 
-router.put("/me", protect, updateMyMarriage);
-router.put("/:marriageId/access", protect, updateMarriageAccess);
+router.put("/me", protect, checkSubscription,updateMyMarriage);
+router.put("/:marriageId/access", protect,checkSubscription, updateMarriageAccess);
 
-router.delete("/me", protect, deleteMyMarriage);
+router.delete("/me", protect, checkSubscription ,deleteMyMarriage);
 
 export default router;
