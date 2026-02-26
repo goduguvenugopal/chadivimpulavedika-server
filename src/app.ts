@@ -60,6 +60,17 @@ app.use(hpp());
 app.use("/api/marriages", marriageRoutes);
 app.use("/api/marriage/visitors", visitorRoutes);
 
+
+
+// health check 
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Server is healthy",
+  });
+});
+
+
 /* ========================
    GLOBAL ERROR HANDLER
 ======================== */
