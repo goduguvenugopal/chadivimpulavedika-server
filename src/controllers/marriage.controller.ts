@@ -111,22 +111,6 @@ export const loginMarriage = asyncHandler(
       maxAge: 3 * 24 * 60 * 60 * 1000,
     });
 
-    // loginMarriage controller
-
-    const expiryDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-
-    const updateData: any = {
-      subscriptionExpiresAt: expiryDate,
-    };
-
-    // If first time (inactive → active)
-    if (marriage.status === "inactive") {
-      updateData.status = "active";
-    }
-
-    // If already active, we still refresh expiry
-    await Marriage.findByIdAndUpdate(marriage._id, updateData);
-
     res.status(200).json({
       success: true,
       message: "Login successful",
@@ -247,7 +231,7 @@ export const updateMyMarriage = asyncHandler(
 // marriage update
 export const updateMarriageAccess = asyncHandler(
   async (req: AuthRequest, res: Response) => {
-    // Only platform  admin can update access control
+    // 🔐 Only platform admin
     requireRole(req, "admin");
 
     const { marriageId } = req.params;
@@ -258,9 +242,19 @@ export const updateMarriageAccess = asyncHandler(
       throw error;
     }
 
-    // ✅ Only allow role and permissions updates
+    // 🔎 Find marriage first
+    const marriage = await Marriage.findById(marriageId);
+
+    if (!marriage) {
+      const error = new Error("Marriage not found") as CustomError;
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // ✅ Allowed fields
     const allowedFields = [
-      "permissions , password",
+      "permissions",
+      "password",
       "status",
       "subscriptionExpiresAt",
     ];
@@ -273,32 +267,37 @@ export const updateMarriageAccess = asyncHandler(
       }
     }
 
-    if (Object.keys(updateData).length === 0) {
-      const error = new Error("No valid fields provided") as CustomError;
-      error.statusCode = 400;
-      throw error;
-    }
-
-    // 🔐 If password is being updated → hash it
+    // 🔐 If password updating → hash
     if (updateData.password) {
       updateData.password = await bcrypt.hash(updateData.password, 10);
     }
 
-    const marriage = await Marriage.findByIdAndUpdate(marriageId, updateData, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!marriage) {
-      const error = new Error("Marriage not found") as CustomError;
-      error.statusCode = 404;
-      throw error;
+    // 📅 Expiry Logic
+    if (!updateData.subscriptionExpiresAt) {
+      // If admin didn't provide expiry → default 3 days
+      updateData.subscriptionExpiresAt = new Date(
+        Date.now() + 3 * 24 * 60 * 60 * 1000,
+      );
     }
+
+    // 🚀 Auto activate if currently inactive
+    if (marriage.status === "inactive") {
+      updateData.status = "active";
+    }
+
+    const updatedMarriage = await Marriage.findByIdAndUpdate(
+      marriageId,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
     res.status(200).json({
       success: true,
       message: "Marriage details updated successfully",
-      data: marriage,
+      data: updatedMarriage,
     });
   },
 );
