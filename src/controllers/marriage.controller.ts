@@ -81,7 +81,6 @@ export const loginMarriage = asyncHandler(
     }
 
     const marriage = await Marriage.findOne({ adminMobileNumber });
-
     if (!marriage) {
       const error: any = new Error("Marriage not found");
       error.statusCode = 404;
@@ -107,13 +106,14 @@ export const loginMarriage = asyncHandler(
     res.cookie("mg_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 3 * 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({
       success: true,
       message: "Login successful",
+      data: marriage,
     });
   },
 );
@@ -303,18 +303,23 @@ export const updateMarriageAccess = asyncHandler(
 );
 
 /**
- * @desc Delete Marriage
- */ export const deleteMyMarriage = asyncHandler(
+ *
+ * @desc Delete Marriage (Admin Only)
+ */
+export const deleteMarriage = asyncHandler(
   async (req: AuthRequest, res: Response) => {
-    if (!req.marriageId) {
-      const error = new Error("Not authorized") as CustomError;
-      error.statusCode = 401;
+    // 🔐 Only platform admin
+    requireRole(req, "admin");
+
+    const { marriageId } = req.params;
+
+    if (!marriageId) {
+      const error = new Error("Marriage ID is required") as CustomError;
+      error.statusCode = 400;
       throw error;
     }
 
-    requireRole(req, "admin");
-
-    const marriage = await Marriage.findByIdAndDelete(req.marriageId);
+    const marriage = await Marriage.findByIdAndDelete(marriageId);
 
     if (!marriage) {
       const error = new Error("Marriage not found") as CustomError;

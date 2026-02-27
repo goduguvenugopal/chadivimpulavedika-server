@@ -28,7 +28,7 @@ export const checkSubscription = async (
     return res.status(403).json({
       success: false,
       message: "Subscription inactive",
-      redirect: "/login",
+       
     });
   }
 
@@ -47,7 +47,7 @@ export const checkSubscription = async (
     return res.status(401).json({
       success: false,
       message: "Subscription expired",
-      redirect: "/login",
+      
     });
   }
 

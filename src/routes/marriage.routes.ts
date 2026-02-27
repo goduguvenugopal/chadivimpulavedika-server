@@ -22,9 +22,9 @@ router.post("/logout", logoutMarriage);
 router.get("/me", protect,checkSubscription, getMyMarriage);
 router.get("/", protect, getAllMarriages);
 
-router.put("/me", protect, checkSubscription,updateMyMarriage);
+router.put("/me/update", protect, checkSubscription,updateMyMarriage);
 router.put("/:marriageId/access", protect,checkSubscription, updateMarriageAccess);
 
-router.delete("/me", protect, checkSubscription ,deleteMyMarriage);
+router.delete("/delete:/marriageId", protect, checkSubscription ,deleteMyMarriage);
 
 export default router;
