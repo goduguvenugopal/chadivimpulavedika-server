@@ -31,7 +31,7 @@ router.put(
 );
 
 router.delete(
-  "/delete:/marriageId",
+  "/delete/:marriageId",
   protect,
   checkSubscription,
   deleteMarriage,
