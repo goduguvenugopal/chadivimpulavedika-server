@@ -4,7 +4,7 @@ import {
   loginMarriage,
   getMyMarriage,
   updateMyMarriage,
-  deleteMyMarriage,
+  deleteMarriage,
   getAllMarriages,
   updateMarriageAccess,
   logoutMarriage,
@@ -19,12 +19,22 @@ router.post("/register", createMarriage);
 router.post("/login", loginMarriage);
 router.post("/logout", logoutMarriage);
 
-router.get("/me", protect,checkSubscription, getMyMarriage);
+router.get("/me", protect, checkSubscription, getMyMarriage);
 router.get("/", protect, getAllMarriages);
 
-router.put("/me/update", protect, checkSubscription,updateMyMarriage);
-router.put("/:marriageId/access", protect,checkSubscription, updateMarriageAccess);
+router.put("/me/update", protect, checkSubscription, updateMyMarriage);
+router.put(
+  "/:marriageId/access",
+  protect,
+  checkSubscription,
+  updateMarriageAccess,
+);
 
-router.delete("/delete:/marriageId", protect, checkSubscription ,deleteMyMarriage);
+router.delete(
+  "/delete:/marriageId",
+  protect,
+  checkSubscription,
+  deleteMarriage,
+);
 
 export default router;
