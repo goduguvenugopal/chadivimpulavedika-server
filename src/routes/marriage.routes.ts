@@ -19,7 +19,7 @@ router.post("/register", createMarriage);
 router.post("/login", loginMarriage);
 router.post("/logout", logoutMarriage);
 
-router.get("/me", protect, checkSubscription, getMyMarriage);
+router.get("/me", protect, getMyMarriage);
 router.get("/", protect, getAllMarriages);
 
 router.put("/me/update", protect, checkSubscription, updateMyMarriage);

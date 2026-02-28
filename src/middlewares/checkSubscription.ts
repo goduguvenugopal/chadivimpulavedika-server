@@ -39,7 +39,7 @@ export const checkSubscription = async (
     new Date() > marriage.subscriptionExpiresAt
   ) {
     await Marriage.findByIdAndUpdate(req.marriageId, {
-      // status: "inactive",
+      status: "inactive",
       permissions: "expired",
     });
 
