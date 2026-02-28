@@ -6,6 +6,7 @@ import { AuthRequest } from "../types/express";
 import { requireRole } from "../utills/roleCheck";
 import { CustomError } from "../types/CustomError";
 import bcrypt from "bcrypt";
+import { authCookieOptions, authCookieWithExpiry } from "../utills/cookieOptions";
 /**
  * @desc Create Marriage
  */
@@ -103,12 +104,7 @@ export const loginMarriage = asyncHandler(
       marriage.permissions,
     );
 
-    res.cookie("mg_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 3 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("mg_token", token, authCookieWithExpiry);
 
     res.status(200).json({
       success: true,
@@ -120,12 +116,7 @@ export const loginMarriage = asyncHandler(
 
 // logout marriage
 export const logoutMarriage = (req: AuthRequest, res: Response) => {
-  res.cookie("mg_token", "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
-    expires: new Date(0),
-  });
+   res.clearCookie("mg_token", authCookieOptions);
 
   res.status(200).json({
     success: true,

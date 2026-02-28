@@ -3,6 +3,7 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../types/express";
 import Marriage from "../models/marriage.model";
+import { authCookieOptions } from "../utills/cookieOptions";
 
 export const checkSubscription = async (
   req: AuthRequest,
@@ -24,11 +25,11 @@ export const checkSubscription = async (
 
   // 🚨 FIRST: Check status
   if (marriage.status !== "active") {
-    res.clearCookie("mg_token");
+    res.clearCookie("mg_token", authCookieOptions);
+
     return res.status(403).json({
       success: false,
       message: "Subscription inactive",
-       
     });
   }
 
@@ -42,12 +43,11 @@ export const checkSubscription = async (
       permissions: "expired",
     });
 
-    res.clearCookie("mg_token");
+    res.clearCookie("mg_token", authCookieOptions);
 
     return res.status(401).json({
       success: false,
       message: "Subscription expired",
-      
     });
   }
 
