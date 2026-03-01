@@ -187,7 +187,7 @@ export const updateMyMarriage = asyncHandler(
       "marriageName",
       "marriageDate",
       "location",
-      "adminMobileNumber",
+      // "adminMobileNumber",
       "upiId",
       "upiPayeeName",
     ];
