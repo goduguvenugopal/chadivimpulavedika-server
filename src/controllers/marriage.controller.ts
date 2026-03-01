@@ -6,7 +6,10 @@ import { AuthRequest } from "../types/express";
 import { requireRole } from "../utills/roleCheck";
 import { CustomError } from "../types/CustomError";
 import bcrypt from "bcrypt";
-import { authCookieOptions, authCookieWithExpiry } from "../utills/cookieOptions";
+import {
+  authCookieOptions,
+  authCookieWithExpiry,
+} from "../utills/cookieOptions";
 /**
  * @desc Create Marriage
  */
@@ -116,7 +119,7 @@ export const loginMarriage = asyncHandler(
 
 // logout marriage
 export const logoutMarriage = (req: AuthRequest, res: Response) => {
-   res.clearCookie("mg_token", authCookieOptions);
+  res.clearCookie("mg_token", authCookieOptions);
 
   res.status(200).json({
     success: true,
@@ -189,6 +192,7 @@ export const updateMyMarriage = asyncHandler(
       "location",
       // "adminMobileNumber",
       "upiId",
+      "password",
       "upiPayeeName",
     ];
 
@@ -198,6 +202,11 @@ export const updateMyMarriage = asyncHandler(
       if (req.body[key] !== undefined) {
         updateData[key] = req.body[key];
       }
+    }
+
+    // 🔐 If password updating → hash
+    if (updateData.password) {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
     }
 
     const marriage = await Marriage.findByIdAndUpdate(
