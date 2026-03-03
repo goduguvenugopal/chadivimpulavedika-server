@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Marriage, { IMarriage, marriageSchema } from "../models/marriage.model";
+import Marriage from "../models/marriage.model";
 import { asyncHandler } from "../utills/asyncHandler";
 import { generateToken } from "../utills/generateToken";
 import { AuthRequest } from "../types/express";
@@ -10,6 +10,8 @@ import {
   authCookieOptions,
   authCookieWithExpiry,
 } from "../utills/cookieOptions";
+import Visitor from "../models/visitor.model";
+
 /**
  * @desc Create Marriage
  */
@@ -307,9 +309,11 @@ export const updateMarriageAccess = asyncHandler(
  *
  * @desc Delete Marriage (Admin Only)
  */
+import mongoose from "mongoose";
+import visitorModel from "../models/visitor.model";
+
 export const deleteMarriage = asyncHandler(
   async (req: AuthRequest, res: Response) => {
-    // 🔐 Only platform admin
     requireRole(req, "admin");
 
     const { marriageId } = req.params;
@@ -320,17 +324,38 @@ export const deleteMarriage = asyncHandler(
       throw error;
     }
 
-    const marriage = await Marriage.findByIdAndDelete(marriageId);
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    if (!marriage) {
-      const error = new Error("Marriage not found") as CustomError;
-      error.statusCode = 404;
+    try {
+      // 1️⃣ Check marriage exists
+      const marriage = await Marriage.findById(marriageId).session(session);
+
+      if (!marriage) {
+        const error = new Error("Marriage not found") as CustomError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      // 2️⃣ Delete visitors
+      await Visitor.deleteMany({ marriageId }).session(session);
+
+      // 3️⃣ Delete marriage
+      await Marriage.findByIdAndDelete(marriageId).session(session);
+
+      // 4️⃣ Commit if everything successful
+      await session.commitTransaction();
+      session.endSession();
+
+      res.status(200).json({
+        success: true,
+        message: "Marriage and related visitors deleted successfully",
+      });
+    } catch (error) {
+      // ❌ If ANYTHING fails → rollback everything
+      await session.abortTransaction();
+      session.endSession();
       throw error;
     }
-
-    res.status(200).json({
-      success: true,
-      message: "Marriage deleted successfully",
-    });
   },
 );
