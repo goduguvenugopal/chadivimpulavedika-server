@@ -64,7 +64,6 @@ export const addVisitor = asyncHandler(
   },
 );
 
-
 /**
  * @desc Update Visitor
  * @route PUT /api/marriage/visitors/:id
